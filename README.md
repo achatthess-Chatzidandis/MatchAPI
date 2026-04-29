@@ -79,8 +79,17 @@ How to Run the Application
     - mvn clean package
     - docker compose up --build
 
+How to access postgres DB in docker
+-----------------------------------
+1. From a powershell terminal window navigate to project root and run:
+    - docker exec -it postgres psql -U postgres -d matchdb
+    - select * from matches;
+    - select * from match_odds;
+
 How to Use the Application with log examples
 --------------------------------------------
+
+From a powershell terminal window navigate to project root and run:
 
 //GET match by id - Retrieves info of match id = 1
     
@@ -378,6 +387,8 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches" `
 
 Log examples for validations
 ----------------------------
+
+From a powershell terminal window navigate to project root and run:
 
 //Get an unexisting match
 
