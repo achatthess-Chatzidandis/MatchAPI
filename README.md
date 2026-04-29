@@ -1,25 +1,41 @@
 Match API
 ---------
 
+1. Overview
+-----------
     A Spring Boot REST API for managing sports matches and their betting odds.  
     The system supports match creation, retrieval, updates, deletion, and odds management with business validations.
     There is a script which inserts 3 mathces on application start (2 football and 1 basketball).
 
-Tech Stack
-----------
+2. Architecture
+---------------
+The system follows a layered architecture:
 
+Controller Layer -> Service Layer* -> Repository Layer -> Database 
+*Service Layer -> Mapper Layer (DTO <-> Entity)
+
+Key principles:
+    -DTO-based API communication
+    -Stateless REST design
+    -Transactional service layer
+    -Business logic isolated from controllers
+
+3. Tech Stack
+-------------
   - Java 17
   - Spring Boot 3
   - Spring Web (REST API)
-  - Spring Data JPA (Hibernate)
+  - Spring Data JPA
+  - Hibernate ORM
   - PostgreSQL
+  - Jakarta Validation
   - Maven
   - Docker & Docker Compose
   - Lombok
+  - JUnit 5 + Mockito (testing)
 
-Features
---------
-
+4. Features
+-----------
     Match Management
     - Create a match
     - Get match by ID
@@ -30,48 +46,92 @@ Features
     - Add odds to a match
     - Update existing odds
     - Retrieve odds by match ID
-    
-    Validations
-    -Global validations
-        - NOT_FOUND : match ID, odd ID
-    -Match validations
-        - teamA must be different from teamB
-        - description must be "teamA-teamB"
-        - Duplicate check: Can not create match entry for same teamA, teamB, matchDate, Sport
-        - Field validations
-            - Not empty: teamA, teamB, description
-            - Not null: matchDate, matchTime, Sport
-    -Odds validations
-        - odd value >= 0,01 and odd value <= 10000,00
-        - Specifier BASKETBALL can not have odd for DRAW
 
-    Domain Model
+5. Domain Model
+---------------
+    -MatchEntity : Represents a sports match. @OneToMany relation with MatchOddsEntity.
+    -MatchOddsEntity: Represents betting odds for a match. @ManyToOne relation with MatchEntity.
+
     Match
-        ● id
-        ● description
-        ● match_date
-        ● match_tiime
-        ● team_a
-        ● team_b
-        ● sport (enum with values 1.Football, 2.Basketball)
+        - id
+        - description
+        - match_date
+        - match_tiime
+        - team_a
+        - team_b
+        - sport (enum with values 1.Football, 2.Basketball)
 
     MatchOdds
-        ● id
-        ● match_id
-        ● specifier (enum with values 1.Home, 2.Draw, 3.Away)
-        ● odd
+        - id
+        - match_id
+        - specifier (enum with values 1.Home, 2.Draw, 3.Away)
+        - odd
 
-Pain points
------------
+6. DTO layer
+------------
+DTOs are used for API communication.
+
+MatchDTO
+    -Mirrors MatchEntity
+    -Includes list of MatchOddsDTO
+    -Custom Validation annotations applied
+
+MatchOddsDTO
+    -Contains matchId, specifier, and odd
+    -Used for odds operations independently
+
+7. Enums
+--------
+Sport
+    -Defines supported sports: FOOTBALL and BASKETBALL
+
+Specifier
+    -Defines betting outcomes: HOME , DRAW, AWAY
+
+8. Business Rules
+-----------------
+    -Match validations
+      - teamA must be different from teamB
+      - description must be "teamA-teamB"
+      - Duplicate check: Can not create match entry for same teamA, teamB, matchDate, Sport
+      - Field validations
+        - Not empty: teamA, teamB, description
+        - Not null: matchDate, matchTime, Sport
+
+    - Odds validations
+      - odd value >= 0,01 and odd value <= 10000,00
+      - Specifier BASKETBALL can not have odd for DRAW
+
+9. API Design
+-------------
+    -Base path: /api/v1/matches
+    -Create Match: POST /api/v1/matches
+    -Get Match: GET /api/v1/matches/{id}
+    -Update Match: PUT /api/v1/matches/{id}
+    -Delete Match: DELETE /api/v1/matches/{id}
+
+    -Add/Update Odds: POST /api/v1/matches/{id}/odds
+    -Get Odds : GET /api/v1/matches/{id}/odds
+
+10. Service Layer
+-----------------
+Responsibilities:
+    -Business logic enforcement
+    -Validation rules
+    -Mapping DTO <-> Entity
+    -Transaction handling
+
+11. Pain points
+---------------
 I found the handling of Enums unnecessary complicated. I had to implement a custom converter class for both enums to jump between
 json and database values. I would recommend the use of separated entities for Sport and Specifier with an OneToOne relation between
 Match and MatchOdd entities respectively. Another reason for this is to be able to update those entities from the database. Enums
 have fixed values which requires a new API version in case of a change/addition
 
-How to Run the Application
--------------------------
+12. How to Run the Application
+------------------------------
 
-1. Start Infrastructure engine
+1. Start infrastructure engine
    - Start docker engine
 
 2. From a powershell terminal window navigate to project root and run:
@@ -79,15 +139,15 @@ How to Run the Application
     - mvn clean package
     - docker compose up --build
 
-How to access postgres DB in docker
------------------------------------
+13. How to access postgres DB in docker
+----------------------------------------
 1. From a powershell terminal window navigate to project root and run:
     - docker exec -it postgres psql -U postgres -d matchdb
     - select * from matches;
     - select * from match_odds;
 
-How to Use the Application with log examples
---------------------------------------------
+14. How to Use the Application with log examples
+-------------------------------------------------
 
 From a powershell terminal window navigate to project root and run:
 
@@ -385,8 +445,8 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches" `
   "error": null
 }
 
-Log examples for validations
-----------------------------
+15. Log examples for validations
+---------------------------------
 
 From a powershell terminal window navigate to project root and run:
 
