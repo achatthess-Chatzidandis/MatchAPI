@@ -47,7 +47,7 @@
           <artifactId>spring-boot-starter-validation</artifactId>
       </dependency>
 
-      <!-- Lombok (optional but highly recommended) -->
+      <!-- Lombok for boilerplate code-->
       <dependency>
           <groupId>org.projectlombok</groupId>
           <artifactId>lombok</artifactId>

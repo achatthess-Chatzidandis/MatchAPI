@@ -196,12 +196,7 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches/1/odds" `
     REQUEST:
 Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches/1" -Method Delete ` | ConvertTo-Json -Depth 5
 
-    RESPONSE:
-{
-"success": true,
-"data": null,
-"error": null
-}
+    RESPONSE: ""
 
 //VERIFY DELETED match by id - Verify that match id = 1 is deleted
     
