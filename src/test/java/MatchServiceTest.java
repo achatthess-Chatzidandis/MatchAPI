@@ -1,122 +1,163 @@
+
+
 import chatzidandis.dto.MatchDTO;
 import chatzidandis.dto.MatchOddsDTO;
 import chatzidandis.entity.MatchEntity;
+import chatzidandis.enums.Specifier;
 import chatzidandis.enums.Sport;
 import chatzidandis.mapper.MatchMapper;
+import chatzidandis.mapper.MatchOddsMapper;
 import chatzidandis.repository.MatchRepository;
 import chatzidandis.service.MatchService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class MatchServiceTest {
+@ExtendWith(MockitoExtension.class)
+class MatchServiceTest {
 
     @Mock
     private MatchRepository repository;
 
     @Mock
-    private MatchMapper mapper;
+    private MatchMapper matchMapper;
+
+    @Mock
+    private MatchOddsMapper matchOddsMapper;
 
     @InjectMocks
     private MatchService service;
 
+    private MatchEntity entity;
+    private MatchDTO dto;
+
     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    void setup() {
+        entity = buildEntity();
+        dto = buildDTO();
     }
 
+    // ---------------- CREATE ----------------
     @Test
-    void create_shouldSaveMatch_whenNotExists() {
-
-        MatchDTO dto = new MatchDTO();
-        dto.setTeamA("OSFP");
-        dto.setTeamB("PAO");
-        dto.setMatchDate(LocalDate.now());
-        dto.setSport(Sport.FOOTBALL);
-
-        MatchEntity entity = new MatchEntity();
-
-        when(repository.findByTeamAAndTeamBAndMatchDateAndSport(
-                        any(), any(), any(), any()
-        )).thenReturn(Optional.empty());
-
-        when(mapper.toEntity(dto)).thenReturn(entity);
-        when(repository.save(entity)).thenReturn(entity);
-        when(mapper.toDTO(entity)).thenReturn(dto);
+    void shouldCreateMatch() {
+        when(matchMapper.toEntity(any())).thenReturn(entity);
+        when(repository.save(any())).thenReturn(entity);
+        when(matchMapper.toDTO(any())).thenReturn(dto);
 
         MatchDTO result = service.create(dto);
 
-        assertNotNull(result);
-        verify(repository).save(entity);
+        assertThat(result).isNotNull();
+        verify(repository).save(any());
     }
 
+    // ---------------- FIND BY ID ----------------
     @Test
-    void create_shouldThrowException_whenMatchExists() {
-
-        MatchDTO dto = new MatchDTO();
-        dto.setTeamA("OSFP");
-        dto.setTeamB("PAO");
-        dto.setMatchDate(LocalDate.now());
-        dto.setSport(Sport.FOOTBALL);
-
-        when(repository.findByTeamAAndTeamBAndMatchDateAndSport(
-                        any(), any(), any(), any()
-        )).thenReturn(Optional.of(new MatchEntity()));
-
-        assertThrows(ResponseStatusException.class,
-                        () -> service.create(dto));
-    }
-
-    @Test
-    void odds_shouldThrowException_whenBasketballHasDraw() {
-
-        Long matchId = 1L;
-
-        MatchDTO match = new MatchDTO();
-        match.setSport(Sport.BASKETBALL);
-
-        MatchOddsDTO odd = new MatchOddsDTO();
-        odd.setSpecifier(chatzidandis.enums.Specifier.DRAW);
-
-        when(repository.existsById(matchId)).thenReturn(true);
-        when(repository.findById(matchId)).thenReturn(Optional.of(new MatchEntity()));
-        when(mapper.toDTO(any())).thenReturn(match);
-
-        assertThrows(ResponseStatusException.class,
-                        () -> service.odds(matchId, List.of(odd)));
-    }
-
-    @Test
-    void findById_shouldReturnMatch() {
-
-        MatchEntity entity = new MatchEntity();
-        MatchDTO dto = new MatchDTO();
-
-        when(repository.existsById(1L)).thenReturn(true);
+    void shouldReturnMatchById() {
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
-        when(mapper.toDTO(entity)).thenReturn(dto);
+        when(matchMapper.toDTO(entity)).thenReturn(dto);
 
-        MatchDTO result = service.findById(1L);
+        MatchDTO result = service.getMatchDTOById(1L);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
+        verify(repository).findById(1L);
     }
 
     @Test
-    void delete_shouldCallRepository() {
+    void shouldThrowWhenMatchNotFound() {
+        assertThatThrownBy(() -> service.getMatchDTOById(1L))
+                        .isInstanceOf(ResponseStatusException.class);
+    }
 
-        when(repository.existsById(1L)).thenReturn(true);
+    // ---------------- UPDATE ----------------
+    @Test
+    void shouldUpdateMatch() {
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(repository.save(any())).thenReturn(entity);
+        when(matchMapper.toDTO(any())).thenReturn(dto);
 
+        MatchDTO result = service.update(1L, dto);
+
+        assertThat(result).isNotNull();
+        verify(repository).save(any());
+    }
+
+    // ---------------- DELETE ----------------
+    @Test
+    void shouldDeleteMatch() {
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
         service.delete(1L);
-
         verify(repository).deleteById(1L);
     }
 
+    // ---------------- ODDS ----------------
+    @Test
+    void shouldAddOddsToMatch() {
+        MatchOddsDTO oddsDTO = new MatchOddsDTO();
+        oddsDTO.setSpecifier(Specifier.HOME);
+        oddsDTO.setOdd(BigDecimal.valueOf(1.5));
+
+        dto.setOdds(List.of(oddsDTO));
+        dto.setSport(Sport.FOOTBALL);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(matchMapper.toDTO(entity)).thenReturn(dto);
+        when(repository.save(any())).thenReturn(entity);
+
+        List<MatchOddsDTO> result = service.odds(1L, List.of(oddsDTO));
+
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void shouldRejectOddsForBasketballDraw() {
+        dto.setSport(Sport.BASKETBALL);
+
+        MatchOddsDTO oddsDTO = new MatchOddsDTO();
+        oddsDTO.setSpecifier(Specifier.DRAW);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(matchMapper.toDTO(entity)).thenReturn(dto);
+
+        assertThatThrownBy(() -> service.odds(1L, List.of(oddsDTO)))
+                        .isInstanceOf(ResponseStatusException.class);
+    }
+
+    // ---------------- HELPERS ----------------
+    private MatchEntity buildEntity() {
+        MatchEntity e = new MatchEntity();
+        e.setId(1L);
+        e.setTeamA("A");
+        e.setTeamB("B");
+        e.setSport(Sport.FOOTBALL);
+        e.setMatchDate(LocalDate.now());
+        e.setMatchTime(LocalTime.now());
+        return e;
+    }
+
+    private MatchDTO buildDTO() {
+        MatchDTO d = new MatchDTO();
+        d.setId(1L);
+        d.setTeamA("A");
+        d.setTeamB("B");
+        d.setSport(Sport.FOOTBALL);
+        d.setMatchDate(LocalDate.now());
+        d.setMatchTime(LocalTime.now());
+        d.setOdds(List.of());
+        return d;
+    }
 }

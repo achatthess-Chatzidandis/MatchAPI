@@ -9,8 +9,6 @@ import java.util.Optional;
 
 public interface MatchRepository extends JpaRepository<MatchEntity, Long> {
 
-    boolean existsById(Long id);
-
     Optional<MatchEntity> findByTeamAAndTeamBAndMatchDateAndSport(
                     String teamA,
                     String teamB,

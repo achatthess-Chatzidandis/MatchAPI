@@ -36,7 +36,7 @@ public class MatchValidator implements ConstraintValidator<ValidMatch, MatchDTO>
             if (!dto.getDescription().equals(expected)) {
 
                 context.buildConstraintViolationWithTemplate(
-                                                "description must be in format: " + expected)
+                                                "description must be in format: teamA-teamB")
                                 .addPropertyNode("description")
                                 .addConstraintViolation();
 

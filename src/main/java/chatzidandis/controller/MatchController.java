@@ -14,7 +14,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/matches")
+@RequestMapping("/api/v1/matches")
 public class MatchController {
 
     private final MatchService service;
@@ -59,7 +59,7 @@ public class MatchController {
     //find match by id
     @GetMapping("/{matchId}")
     public ResponseEntity<ApiResponse<MatchDTO>> get(@PathVariable Long matchId) {
-        MatchDTO match = service.findById(matchId);
+        MatchDTO match = service.getMatchDTOById(matchId);
         log.info("Found match with id {}", matchId);
         return ResponseEntity.ok(ApiResponse.ok(match));
     }
@@ -77,6 +77,6 @@ public class MatchController {
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long matchId) {
         service.delete(matchId);
         log.info("Deleted match with id {}", matchId);
-        return ResponseEntity.ok(ApiResponse.ok(null));
+        return ResponseEntity.noContent().build();
     }
 }

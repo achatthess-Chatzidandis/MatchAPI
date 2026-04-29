@@ -85,7 +85,7 @@ How to Use the Application with log examples
 //GET match by id - Retrieves info of match id = 1
     
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches/1" ` | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches/1" ` | ConvertTo-Json -Depth 5
     
     RESPONSE:
 {
@@ -125,7 +125,7 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/matches/1" ` | ConvertTo-Json 
 //GET match odds by match id - Retrieves odds info of match id = 1
     
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches/1/odds" -Method Get ` | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches/1/odds" -Method Get ` | ConvertTo-Json -Depth 5
     
     RESPONSE:
 {
@@ -156,7 +156,7 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/matches/1/odds" -Method Get ` 
 //UPDATE odds list for a match id - Updates odds for existing match id = 1
     
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches/1/odds" `
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches/1/odds" `
 -Method Post `
 -ContentType "application/json" `
 -Body '[
@@ -194,7 +194,7 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/matches/1/odds" `
 //DELETE match by id - Deletes match info for match id = 1
     
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches/1" -Method Delete ` | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches/1" -Method Delete ` | ConvertTo-Json -Depth 5
 
     RESPONSE:
 {
@@ -206,7 +206,7 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/matches/1" -Method Delete ` | 
 //VERIFY DELETED match by id - Verify that match id = 1 is deleted
     
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches/1" -Method Get ` | ConvertTo-Json -Depth 5   
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches/1" -Method Get ` | ConvertTo-Json -Depth 5   
     
     RESPONSE:
 Invoke-RestMethod:
@@ -220,7 +220,7 @@ Invoke-RestMethod:
 //CREATE new match without odds list (id would be 4)
 
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches" `
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches" `
 -Method Post `
 -ContentType "application/json" `
 -Body '{
@@ -251,7 +251,7 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/matches" `
 //INSERT odds for new match (id = 4)
     
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches/4/odds" `
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches/4/odds" `
 -Method Post `
 -ContentType "application/json" `
 -Body '[
@@ -289,7 +289,7 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/matches/4/odds" `
 //VERIFY odds creation for match id = 4
 
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches/4" -Method Get ` | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches/4" -Method Get ` | ConvertTo-Json -Depth 5
 
     RESPONSE:
 {
@@ -329,7 +329,7 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/matches/4" -Method Get ` | Con
 //CREATE new match with odds list (id would be 5)
 
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches" `
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches" `
 -Method Post `
 -ContentType "application/json" `
 -Body '{
@@ -387,7 +387,7 @@ Log examples for validations
 //Get an unexisting match
 
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches/10" -Method Get ` | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches/10" -Method Get ` | ConvertTo-Json -Depth 5
 
     RESPONSE:
 Invoke-RestMethod:
@@ -400,7 +400,7 @@ Invoke-RestMethod:
 //teamA must be different from teamB
 
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches" `
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches" `
 -Method Post `
 -ContentType "application/json" `
 -Body '{
@@ -425,7 +425,7 @@ Invoke-RestMethod:
 //description must be "teamA-teamB"
 
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches" `
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches" `
 -Method Post `
 -ContentType "application/json" `
 -Body '{
@@ -442,7 +442,7 @@ Invoke-RestMethod:
 {
   "success": false,
   "data": {
-    "description": "description must be in format: OSFP-PAO"
+    "description": "description must be in format: teamA-teamB"
   },
   "error": "Validation failed"
 }
@@ -450,7 +450,7 @@ Invoke-RestMethod:
 //Duplicate check: Can not create match entry for same teamA, teamB, matchDate, Sport
 
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches" `
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches" `
 -Method Post `
 -ContentType "application/json" `
 -Body '{
@@ -473,7 +473,7 @@ Invoke-RestMethod:
 //Specifier BASKETBALL can not have odd for DRAW
 
     REQUEST:
-Invoke-RestMethod -Uri "http://localhost:8080/api/matches/3/odds" `
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/matches/3/odds" `
 -Method Post `
 -ContentType "application/json" `
 -Body '[

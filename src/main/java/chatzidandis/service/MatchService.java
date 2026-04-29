@@ -46,12 +46,11 @@ public class MatchService {
     //create, update odds
     @Transactional
     public List<MatchOddsDTO> odds(Long matchId, List<MatchOddsDTO> oddsDtos) {
-        existsByIdCheck(matchId);
         if (oddsDtos == null || oddsDtos.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NO_CONTENT,
                             String.format("Odds list can not be empty for match id %d", matchId));
         }
-        MatchDTO matchDTO = findById(matchId);
+        MatchDTO matchDTO = getMatchDTOById(matchId);
         if (matchDTO.getOdds() == null ||  matchDTO.getOdds().isEmpty()) {
             matchDTO.setOdds(new ArrayList<>());
         }
@@ -87,43 +86,11 @@ public class MatchService {
         return matchDTO.getOdds();
     }
 
-    //find match by id
-    public MatchDTO findById(Long id) {
-        existsByIdCheck(id);
-        MatchEntity match = repository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        return matchMapper.toDTO(match);
-    }
-
-    //find odds by match id
-    public List<MatchOddsDTO> findOddsByMatchId(Long matchId) {
-        existsByIdCheck(matchId);
-        MatchEntity match = repository.findById(matchId)
-                        .orElseThrow(() -> new ResponseStatusException(
-                                        HttpStatus.NOT_FOUND,
-                                        String.format("Match id %d not found", matchId)
-                        ));
-
-        if (match.getOdds() == null || match.getOdds().isEmpty()) {
-            return List.of();
-        }
-
-        return match.getOdds()
-            .stream()
-            .map(matchOddsMapper::toDTO)
-            .toList();
-
-    }
-
     //update match info by id
     @Transactional
     public MatchDTO update(Long id, MatchDTO dto) {
-        existsByIdCheck(id);
 
-        MatchEntity existing = repository.findById(id)
-                        .orElseThrow(() -> new ResponseStatusException(
-                                        HttpStatus.NOT_FOUND,
-                                        String.format("Match id %d not found", id)
-                        ));
+        MatchEntity existing = findMatchEntityById(id);
 
         existing.setDescription(dto.getDescription());
         existing.setMatchDate(dto.getMatchDate());
@@ -138,7 +105,7 @@ public class MatchService {
     //delete match by id
     @Transactional
     public void delete(Long id) {
-        existsByIdCheck(id);
+        MatchEntity entity = findMatchEntityById(id);
         repository.deleteById(id);
     }
 
@@ -159,10 +126,32 @@ public class MatchService {
         }
     }
 
-    private void existsByIdCheck(Long id) {
-        if (!repository.existsById(id)){
-            log.warn("Match id {} not found", id);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Match id %d not found", id));
+    //find match by id
+    public MatchDTO getMatchDTOById(Long id) {
+        MatchEntity match = findMatchEntityById(id);
+        return matchMapper.toDTO(match);
+    }
+
+    //find odds by match id
+    public List<MatchOddsDTO> findOddsByMatchId(Long matchId) {
+        MatchEntity match = findMatchEntityById(matchId);
+
+        if (match.getOdds() == null || match.getOdds().isEmpty()) {
+            return List.of();
         }
+
+        return match.getOdds()
+                        .stream()
+                        .map(matchOddsMapper::toDTO)
+                        .toList();
+
+    }
+
+    private MatchEntity findMatchEntityById(Long matchId) {
+        return repository.findById(matchId)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        String.format("Match id %d not found", matchId)
+                        ));
     }
 }
